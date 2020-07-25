@@ -7,16 +7,19 @@ const Booking  = require('../../models/booking');
 //const { createSourceEventStream } = require('graphql');
 
 //alternatively can use async await(await on be main promise)
-
+const transformEvent = event =>{
+    return {
+        ...event._doc,
+        _id: event.id,
+        date : new Date(event._doc.date).toISOString(),
+        creator: user.bind(this,event.creator)
+    }
+}
 const events = async eventIds =>{
     try{
         const events = await Event.find({_id : {$in : eventIds}}) //pool of ids on the $in operator
         return events.map(event=>{
-            return {
-                ...event._doc,
-                 _id: event.id,
-                 date : new Date(event._doc.date).toISOString(),
-                creator:user.bind(this,event.creator)}
+            return transformEvent(event);
         })
     }    
     catch(err) {
@@ -38,7 +41,7 @@ const user = userId => {
 const singleEvent = async eventId =>{
     try{
         const event = await Event.findById(eventId);
-        return {...event._doc, _id: event.id, creator:user.bind(this, event.creator)}
+        return transformEvent(event);
     }
     catch(err){
         throw err;
@@ -48,14 +51,8 @@ module.exports = {
     events : async ()=>{
         try{
             const events = await Event.find()
-            //.populate('creator')
                 return events.map(event=>{
-                    return {
-                        ...event._doc,
-                            _id:event.id,
-                            date : new Date(event._doc.date).toISOString(),
-                            creator: user.bind(this,event._doc.creator)
-                        }; //remove metadata and make object id to be presentable
+                    return transformEvent(event);
                 })
             }
             catch(err){
@@ -69,7 +66,7 @@ module.exports = {
                 return {
                     ...booking._doc,
                     _id:booking.id,
-                    user: user.bind(this.booking._doc.user),
+                    user: user.bind(this,booking._doc.user),
                     event: singleEvent.bind(this, booking._doc.event), 
                     createdAt:new Date(booking._doc.createdAt).toISOString(),
                     updatedAt:new Date(booking._doc.updatedAt).toISOString()
@@ -104,12 +101,7 @@ module.exports = {
              // result is our event and result.id convert id to string by mongoose
             //._doc properties provided by mongoose which gives us all the core properties that make up our 
             //document from our object or event and leave out all the metadata
-                eventCreated = {
-                    ...result._doc,
-                    _id:result.id,
-                    date : new Date(event._doc.date).toISOString(),
-                    creator: user.bind(this, result._doc.creator)
-                };
+                eventCreated = transformEvent(result);
                 const creator = await User.findById("5f106b7c3c433326806750d5")            
                 if(!creator)
                 {
@@ -154,10 +146,22 @@ module.exports = {
         return{
             ...result._doc,
             _id:result.id,
-            user: user.bind(this.booking._doc.user),
+            user: user.bind(this, booking._doc.user),
             event: singleEvent.bind(this, booking._doc.event), 
-            createdAt: new Date(result._doc.createdAt).toISOString(),
-            updatedAt: new Date(result._doc.updatedAt).toISOString()
+            createdAt: new Date(result.createdAt).toISOString(),
+            updatedAt: new Date(result.updatedAt).toISOString()
+        }
+    },
+    cancelBooking : async (args) =>{
+        try{
+            const booking = await Booking.findById({_id : args.bookingId}).populate('event')
+            const event = transformEvent(booking.event);
+            await Booking.deleteOne({_id : args.bookingId})
+            return event;
+        }
+        catch(err)
+        {
+            throw err;
         }
     }
 }
