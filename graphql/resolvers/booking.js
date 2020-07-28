@@ -7,7 +7,11 @@ const {transformBooking, transformEvent} = require('./merge');
 //alternatively can use async await(await on be main promise)
 
 module.exports = {
-    bookings : async ()=>{
+    bookings : async (args, req)=>{
+        if(!req.isAuth)
+        {
+            throw new Error("Unauthenticated!");
+        }
         try{
             const bookings = await Booking.find()
             return bookings.map(booking=>{
@@ -18,16 +22,24 @@ module.exports = {
             throw err;
         }
     },
-    bookEvent: async (args) =>{
+    bookEvent: async (args, req) =>{
+        if(!req.isAuth)
+        {
+            throw new Error("Unauthenticated!");
+        }
         const fetchEvent = await Event.findOne({_id:args.eventId});
         const booking = new Booking({
-            user: "5f106b7c3c433326806750d5",
+            user: req.userId,
             event: fetchEvent
         });
         const result = await booking.save();
         return transformBooking(result);
     },
-    cancelBooking : async (args) =>{
+    cancelBooking : async (args, req) =>{
+        if(!req.isAuth)
+        {
+            throw new Error("Unauthenticated!");
+        }
         try{
             const booking = await Booking.findById({_id : args.bookingId}).populate('event')
             const event = transformEvent(booking.event);

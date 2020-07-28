@@ -1,4 +1,5 @@
 const Event = require('../../models/event');
+const User = require('../../models/user');
 
 const {transformEvent} = require('./merge');
 
@@ -14,11 +15,14 @@ module.exports = {
                 throw err;
             }
     },
-    createEvent : async (args) =>{
+    createEvent : async (args, req) =>{
 
         const {title,description,price,date} = args.eventInput;
         //console.log(title);
-        
+        if(!req.isAuth)
+        {
+            throw new Error("Unauthenticated!");
+        }
         const event = new Event({
             title,
             description,
@@ -26,7 +30,7 @@ module.exports = {
             //+ is the fastest way to convert string to number
             //Parse the string date to JS string objects
             date : new Date(date),
-            creator: "5f106b7c3c433326806750d5"
+            creator: req.userId
         })
         let eventCreated;
         //save onto the database
@@ -39,7 +43,7 @@ module.exports = {
             //._doc properties provided by mongoose which gives us all the core properties that make up our 
             //document from our object or event and leave out all the metadata
                 eventCreated = transformEvent(result);
-                const creator = await User.findById("5f106b7c3c433326806750d5")            
+                const creator = await User.findById(req.userId)            
                 if(!creator)
                 {
                     throw new Error("User not found")

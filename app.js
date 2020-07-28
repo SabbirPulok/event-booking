@@ -8,9 +8,12 @@ const app = express();
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolvers = require('./graphql/resolvers');
 
+const isAuth = require('./middleware/is-auth');
+
 const uri = process.env.DB_PATH.toString();
 
 app.use(bodyParser.json());
+app.use(isAuth);
 
 app.use('/graphql', graphqlHTTP({
     schema: graphqlSchema,
