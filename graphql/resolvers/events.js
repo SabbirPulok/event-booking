@@ -16,7 +16,7 @@ module.exports = {
             }
     },
     createEvent : async (args, req) =>{
-
+        
         const {title,description,price,date} = args.eventInput;
         //console.log(title);
         if(!req.isAuth)
