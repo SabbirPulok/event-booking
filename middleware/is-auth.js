@@ -6,6 +6,7 @@ module.exports = (req,res,next) =>{
     if(!authHeader)
     {
         req.isAuth = false;
+        //request continues it's journey with next call but we rewrite the isAuth field as false.
         return next();
     }
     const token = authHeader.split(' ')[1] ; //Bearer token

@@ -34,6 +34,8 @@ module.exports = {
         {
             throw new Error("Password does not match.");
         }
+        // Generate token with the credentials pass on there
+        //2nd argument is a private key "secretprivatekey"
         const token = jwt.sign({userId: user.id, email: user.email}, 'secretprivatekey', {
             expiresIn: '1h'
         })
