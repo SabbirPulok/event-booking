@@ -4,7 +4,7 @@ import './Events.css';
 import Modal from '../component/Modal/Modal';
 import Backdrop from '../component/Backdrop/Backdrop';
 import AuthContext from '../component/Context/authContext';
-
+import EventsList from '../component/Events/EventsList/EventsList';
 class EventsPage extends Component{
         state ={
             creating: false,
@@ -128,9 +128,6 @@ class EventsPage extends Component{
               });
         }
     render(){
-        const eventList = this.state.events.map(event=>{
-            return <li key={event._id} className="events_list__item">{event.title}</li>
-        })
         return (
             <>
                 { this.state.creating && <Backdrop />}
@@ -169,9 +166,9 @@ class EventsPage extends Component{
                             <Link to="/auth"><button className="btn">Please login for creating Event</button></Link>
                         </div>
                 }
-                <ul className="events_list">
-                    {eventList}
-                </ul>
+            
+                <EventsList events={this.state.events}></EventsList>
+                
             </>            
         );
     }
